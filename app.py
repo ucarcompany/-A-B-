@@ -241,7 +241,7 @@ with st.sidebar:
     st.markdown("""
     <div style="text-align:center; padding:8px 0;">
         <p style="font-size:.78rem; opacity:.7;">Created by</p>
-        <p style="font-weight:700;">北大的小码农</p>
+        <p style="font-weight:700;">陈文杰</p>
         <a href="https://github.com/ucarcompany" target="_blank" style="font-size:.85rem;">GitHub →</a>
     </div>""", unsafe_allow_html=True)
 
@@ -328,10 +328,12 @@ with tab1:
     if len(sig_date):
         first_sig = sig_date.iloc[0]
         first_sig_str = pd.Timestamp(first_sig).strftime('%Y-%m-%d')
-        fig_pv.add_vline(x=first_sig_str, line_dash='dot', line_color=C['pos'], line_width=1.5,
-                         annotation_text=f'首次显著 ({pd.Timestamp(first_sig).strftime("%m-%d")})',
-                         annotation_position='top right',
-                         annotation_font_color=C['pos'])
+        fig_pv.add_shape(type='line', x0=first_sig_str, x1=first_sig_str, y0=0, y1=1,
+                         yref='paper', line=dict(color=C['pos'], width=1.5, dash='dot'))
+        fig_pv.add_annotation(x=first_sig_str, y=1, yref='paper',
+                              text=f'首次显著 ({pd.Timestamp(first_sig).strftime("%m-%d")})',
+                              showarrow=False, font=dict(color=C['pos'], size=12),
+                              xanchor='left', yanchor='bottom')
     fig_pv.update_layout(
         title='累积 P 值收敛趋势',
         xaxis_title='日期', yaxis_title='P-Value',
