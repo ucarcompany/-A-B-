@@ -56,11 +56,14 @@ def generate_ab_test_data(
     }
 
     # B组（实验组）：交互式需求评估与动态报价器
-    # Overall: 0.78 × 0.52 × 0.165 ≈ 6.69%
+    # Overall: 0.77 × 0.45 × 0.178 ≈ 6.17%
+    # 关键改进点：view_to_interact 从 0.38→0.45（+18%），
+    # 模拟交互式报价器降低认知门槛的效果。
+    # 参考: Google/Bing 公开 A/B 测试论文中典型 relative lift 为 5-20%
     funnel_b = {
-        'click_to_view': 0.78,
-        'view_to_interact': 0.52,
-        'interact_to_submit': 0.165
+        'click_to_view': 0.77,
+        'view_to_interact': 0.45,
+        'interact_to_submit': 0.178
     }
 
     # === 修正系数 ===

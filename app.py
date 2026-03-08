@@ -789,28 +789,75 @@ with tab5:
 
     # Expected Loss 分析
     st.markdown('<div class="sec-h">期望损失 (Expected Loss) 分析</div>', unsafe_allow_html=True)
+    st.markdown("""<div class="box-insight">
+    <strong>💡 Expected Loss 是什么？</strong>选择某个方案的期望损失 = 当该方案实际更差时，
+    你平均会损失多少转化率。它是贝叶斯决策理论的核心指标（Letham & Bakshy, 2019）：
+    E[Loss_B] = E[max(θ_A − θ_B, 0)]。当 E[Loss] 低于业务可容忍阈值（如 0.1%）时，即可放心决策。
+    </div>""", unsafe_allow_html=True)
+
     loss_a = np.maximum(b_samp - a_samp, 0).mean()  # 选A的期望损失
     loss_b = np.maximum(a_samp - b_samp, 0).mean()  # 选B的期望损失
+    # Risk ratio: how many times more risk if choosing A vs B
+    risk_ratio = loss_a / loss_b if loss_b > 0 else float('inf')
 
+    def fmt_loss(v):
+        if v < 1e-6: return f'{v:.2e}'
+        if v < 0.0001: return f'{v:.6f}'
+        return f'{v:.4f}'
+
+    col_l1, col_l2, col_l3 = st.columns(3)
+    with col_l1:
+        st.markdown(f"""
+        <div class="kpi-card" style="text-align:center;">
+            <div class="kpi-icon">🅰️</div>
+            <div class="kpi-value" style="color:{C['neg']}; font-size:1.5rem;">{fmt_loss(loss_a)}</div>
+            <div class="kpi-label">选择 A 的期望损失</div>
+        </div>""", unsafe_allow_html=True)
+    with col_l2:
+        st.markdown(f"""
+        <div class="kpi-card" style="text-align:center;">
+            <div class="kpi-icon">🅱️</div>
+            <div class="kpi-value" style="color:{C['pos']}; font-size:1.5rem;">{fmt_loss(loss_b)}</div>
+            <div class="kpi-label">选择 B 的期望损失</div>
+        </div>""", unsafe_allow_html=True)
+    with col_l3:
+        ratio_text = f'{risk_ratio:.0f}×' if risk_ratio < 1e6 else '∞'
+        st.markdown(f"""
+        <div class="kpi-card" style="text-align:center;">
+            <div class="kpi-icon">⚖️</div>
+            <div class="kpi-value" style="color:{C['accent']}; font-size:1.5rem;">{ratio_text}</div>
+            <div class="kpi-label">风险比 (A / B)</div>
+        </div>""", unsafe_allow_html=True)
+
+    # 柱状图 — 对数坐标轴处理量级差异
     fig_loss = go.Figure()
     fig_loss.add_trace(go.Bar(
         x=['选择 A 的期望损失', '选择 B 的期望损失'],
-        y=[loss_a, loss_b],
+        y=[max(loss_a, 1e-8), max(loss_b, 1e-8)],
         marker_color=[C['a'], C['b']],
-        text=[f'{loss_a:.4f}', f'{loss_b:.4f}'],
+        text=[fmt_loss(loss_a), fmt_loss(loss_b)],
         textposition='outside', textfont_size=14
     ))
-    fig_loss.update_layout(title='期望损失 (Expected Loss) — 值越低越安全',
-                           yaxis_title='期望损失 (绝对转化率)', yaxis_tickformat='.4f')
-    style_fig(fig_loss, 340)
+    fig_loss.add_hline(y=0.001, line_dash='dash', line_color=C['gray'],
+                       annotation_text='典型决策阈值 ε = 0.1%', annotation_position='top left')
+    fig_loss.update_layout(
+        title='期望损失对比 (对数坐标)',
+        yaxis_title='期望损失 (绝对转化率)',
+        yaxis_type='log'
+    )
+    style_fig(fig_loss, 360)
     st.plotly_chart(fig_loss, use_container_width=True)
 
+    threshold = 0.001  # 典型阈值
+    below_threshold = loss_b < threshold
     st.markdown(f"""<div class="box-success">
     <strong>✅ 贝叶斯结论：</strong>B 优于 A 的后验概率为 <strong>{prob_b:.1%}</strong>，
     期望转化率提升 <strong>{np.mean(lift_samp):.1%}</strong>。
-    选择 B 的期望损失仅为 <strong>{loss_b:.5f}</strong>，远小于选择 A 的 <strong>{loss_a:.5f}</strong>。
-    B 组表现劣于 A 组的风险仅有 <strong>{prob_loss:.2%}</strong>。从商业决策的角度，
-    可以高置信度地推荐全量上线实验方案。
+    选择 B 的期望损失为 <strong>{fmt_loss(loss_b)}</strong>，
+    {'远低于' if below_threshold else '接近'}决策阈值 ε=0.1%。
+    选择 A 的风险是选择 B 的 <strong>{ratio_text}</strong>。
+    B 组表现劣于 A 组的概率仅有 <strong>{prob_loss:.2%}</strong>。
+    从商业决策的角度，可以高置信度地推荐全量上线实验方案。
     </div>""", unsafe_allow_html=True)
 
 # ===== TAB 6: 分群洞察 =====
@@ -933,8 +980,9 @@ with tab7:
     | 周末效应 | 乘法因子 | 流量×0.82, 转化×0.83 | 实际数据 |
     | 随机噪音 | Normal(μ,σ) | μ=1.0, σ=0.08 | 控制信噪比 |
 
-    B 组在"浏览→互动"环节注入 ~+37% 的提升（从 38% 到 52%），
-    模拟交互式报价器降低认知门槛的效果。最终整体转化率提升约 +1.5 个百分点。
+    B 组在"浏览→互动"环节注入 ~+18% 的提升（从 38% 到 45%），
+    模拟交互式报价器降低认知门槛的效果。参考 Google/Bing 公开
+    A/B 测试论文中典型的 5-20% 相对提升范围。
 
     ---
 
