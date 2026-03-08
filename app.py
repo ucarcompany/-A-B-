@@ -327,7 +327,8 @@ with tab1:
     sig_date = cpv.loc[cpv['p_value'] < 0.05, 'date']
     if len(sig_date):
         first_sig = sig_date.iloc[0]
-        fig_pv.add_vline(x=first_sig, line_dash='dot', line_color=C['pos'], line_width=1.5,
+        first_sig_str = pd.Timestamp(first_sig).strftime('%Y-%m-%d')
+        fig_pv.add_vline(x=first_sig_str, line_dash='dot', line_color=C['pos'], line_width=1.5,
                          annotation_text=f'首次显著 ({pd.Timestamp(first_sig).strftime("%m-%d")})',
                          annotation_position='top right',
                          annotation_font_color=C['pos'])
