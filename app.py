@@ -19,7 +19,7 @@ st.set_page_config(
     page_title="A/B Test 分析平台 | 陈文杰",
     page_icon="🔬",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
 # ==================================================
@@ -114,6 +114,76 @@ header[data-testid="stHeader"] { background: rgba(248,250,252,0.8); backdrop-fil
 /* Tabs */
 .stTabs [data-baseweb="tab-list"] { gap: 4px; }
 .stTabs [data-baseweb="tab"] { border-radius: 8px 8px 0 0; font-weight: 600; }
+
+/* ============ Mobile Responsive ============ */
+@media (max-width: 768px) {
+    /* Hero */
+    .hero { padding: 20px 10px 12px; }
+    .hero-title { font-size: 1.35rem; line-height: 1.3; }
+    .hero-sub { font-size: 0.82rem; margin-bottom: 12px; line-height: 1.5; }
+    .badges { gap: 6px; }
+    .badge { padding: 4px 10px; font-size: 0.68rem; }
+
+    /* KPI Cards — 2 per row on mobile */
+    .kpi-row { gap: 8px; margin: 12px 0 18px; }
+    .kpi-card {
+        flex: 1 1 calc(50% - 8px); min-width: 120px;
+        padding: 14px 8px; border-radius: 12px;
+    }
+    .kpi-icon { font-size: 1.2rem; margin-bottom: 3px; }
+    .kpi-value { font-size: 1.25rem; }
+    .kpi-label { font-size: 0.65rem; letter-spacing: 0.8px; }
+    .kpi-delta { font-size: 0.68rem; padding: 2px 8px; }
+
+    /* Info boxes */
+    .box-insight, .box-success, .box-warn {
+        padding: 10px 12px; margin: 10px 0; font-size: 0.82rem;
+        border-left-width: 3px;
+    }
+
+    /* Section headers */
+    .sec-h { font-size: 1.05rem; }
+
+    /* Tabs — scrollable, smaller text */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 2px; overflow-x: auto; flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    .stTabs [data-baseweb="tab-list"]::-webkit-scrollbar { display: none; }
+    .stTabs [data-baseweb="tab"] {
+        font-size: 0.72rem; padding: 8px 10px;
+        white-space: nowrap; flex-shrink: 0;
+    }
+
+    /* Streamlit main container — reduce padding */
+    .stMainBlockContainer, [data-testid="stAppViewBlockContainer"],
+    section[data-testid="stMain"] > div { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
+    .block-container { padding: 1rem 0.5rem !important; max-width: 100% !important; }
+
+    /* Streamlit columns — reduce gap */
+    [data-testid="column"] { padding: 0 4px !important; }
+
+    /* Tables — scroll horizontally */
+    .stMarkdown table { display: block; overflow-x: auto; white-space: nowrap; font-size: 0.8rem; }
+}
+
+@media (max-width: 480px) {
+    .hero-title { font-size: 1.15rem; }
+    .hero-sub { font-size: 0.75rem; }
+
+    /* KPI Cards — still 2 per row but tighter */
+    .kpi-card {
+        flex: 1 1 calc(50% - 6px); min-width: 100px;
+        padding: 10px 6px;
+    }
+    .kpi-value { font-size: 1.1rem; }
+    .kpi-label { font-size: 0.6rem; }
+
+    .stTabs [data-baseweb="tab"] { font-size: 0.65rem; padding: 6px 8px; }
+    .sec-h { font-size: 0.95rem; }
+    .box-insight, .box-success, .box-warn { font-size: 0.78rem; padding: 8px 10px; }
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -137,11 +207,13 @@ S = calc_summary(df)
 def style_fig(fig, height=440):
     fig.update_layout(
         plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
-        height=height, margin=dict(l=50, r=30, t=50, b=40),
-        font=dict(family="Inter, system-ui, sans-serif", color='#334155', size=13),
+        height=height, margin=dict(l=40, r=20, t=50, b=40),
+        font=dict(family="Inter, system-ui, sans-serif", color='#334155', size=12),
         legend=dict(bgcolor='rgba(255,255,255,.8)', bordercolor='rgba(0,0,0,.08)',
-                    borderwidth=1, font_size=12),
-        hovermode='x unified'
+                    borderwidth=1, font_size=11,
+                    orientation='h', yanchor='bottom', y=1.02, xanchor='center', x=0.5),
+        hovermode='x unified',
+        autosize=True
     )
     fig.update_xaxes(gridcolor='#e2e8f0', zeroline=False)
     fig.update_yaxes(gridcolor='#e2e8f0', zeroline=False)
