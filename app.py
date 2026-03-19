@@ -204,13 +204,14 @@ S = calc_summary(df)
 # ==================================================
 # 工具函数
 # ==================================================
-def style_fig(fig, height=440):
+def style_fig(fig, height=380):
     fig.update_layout(
         plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
-        height=height, margin=dict(l=40, r=20, t=50, b=40),
-        font=dict(family="Inter, system-ui, sans-serif", color='#334155', size=12),
-        legend=dict(bgcolor='rgba(255,255,255,.8)', bordercolor='rgba(0,0,0,.08)',
-                    borderwidth=1, font_size=11,
+        height=height, margin=dict(l=36, r=16, t=72, b=36),
+        font=dict(family="Inter, system-ui, sans-serif", color='#334155', size=11),
+        title_font_size=13,
+        legend=dict(bgcolor='rgba(255,255,255,.85)', bordercolor='rgba(0,0,0,.06)',
+                    borderwidth=1, font_size=10,
                     orientation='h', yanchor='bottom', y=1.02, xanchor='center', x=0.5),
         hovermode='x unified',
         autosize=True
@@ -218,6 +219,10 @@ def style_fig(fig, height=440):
     fig.update_xaxes(gridcolor='#e2e8f0', zeroline=False)
     fig.update_yaxes(gridcolor='#e2e8f0', zeroline=False)
     return fig
+
+def show_chart(fig, **kwargs):
+    st.plotly_chart(fig, use_container_width=True,
+                    config={'displayModeBar': False, 'responsive': True}, **kwargs)
 
 def hex_to_rgba(hex_color, alpha=0.15):
     """将 hex 颜色转为 Plotly 6.x 兼容的 rgba 字符串"""
@@ -448,12 +453,12 @@ with tab1:
                               showarrow=False, font=dict(color=C['pos'], size=12),
                               xanchor='left', yanchor='bottom')
     fig_pv.update_layout(
-        title='累积 P 值收敛趋势 × O\'Brien-Fleming 序贯检验边界',
+        title='P 值收敛 × OBF 序贯边界',
         xaxis_title='日期', yaxis_title='P-Value',
         yaxis=dict(type='log', range=[-4, 0.2])
     )
     style_fig(fig_pv, 420)
-    st.plotly_chart(fig_pv, use_container_width=True)
+    show_chart(fig_pv)
 
     st.markdown('<div class="sec-h">每日转化率趋势</div>', unsafe_allow_html=True)
     daily = df.groupby(['date', 'group']).agg(
@@ -472,7 +477,7 @@ with tab1:
     fig_daily.update_layout(title='每日转化率对比', xaxis_title='日期',
                             yaxis_title='转化率', yaxis_tickformat='.1%')
     style_fig(fig_daily, 400)
-    st.plotly_chart(fig_daily, use_container_width=True)
+    show_chart(fig_daily)
 
     col_a, col_b = st.columns(2)
     with col_a:
@@ -487,7 +492,7 @@ with tab1:
         )
         fig_heat.update_layout(title='流量热力图 (星期 × 小时)')
         style_fig(fig_heat, 320)
-        st.plotly_chart(fig_heat, use_container_width=True)
+        show_chart(fig_heat)
     with col_b:
         st.markdown('<div class="sec-h">累积转化率收敛</div>', unsafe_allow_html=True)
         fig_cum = go.Figure()
@@ -500,7 +505,7 @@ with tab1:
         fig_cum.update_layout(title='累积转化率', xaxis_title='日期',
                               yaxis_title='转化率', yaxis_tickformat='.2%')
         style_fig(fig_cum, 320)
-        st.plotly_chart(fig_cum, use_container_width=True)
+        show_chart(fig_cum)
 
 # ===== TAB 2: 转化漏斗 =====
 with tab2:
@@ -530,7 +535,7 @@ with tab2:
             ))
             fig_f.update_layout(title=title)
             style_fig(fig_f, 400)
-            st.plotly_chart(fig_f, use_container_width=True)
+            show_chart(fig_f)
 
     # 环节转化率对比
     st.markdown('<div class="sec-h">各环节转化率对比</div>', unsafe_allow_html=True)
@@ -552,7 +557,7 @@ with tab2:
         yaxis_tickformat='.0%', yaxis_title='转化率'
     )
     style_fig(fig_step, 400)
-    st.plotly_chart(fig_step, use_container_width=True)
+    show_chart(fig_step)
 
     improvement = [(step_rates['B'][i] - step_rates['A'][i]) / step_rates['A'][i] * 100 for i in range(3)]
     best_step = step_labels[np.argmax(improvement)]
@@ -583,7 +588,7 @@ with tab3:
                           annotation_text='目标 ROI = 1:4')
         fig_roi.update_layout(title='💰 ROI 对比', yaxis_title='ROI')
         style_fig(fig_roi, 380)
-        st.plotly_chart(fig_roi, use_container_width=True)
+        show_chart(fig_roi)
     with col_r2:
         fig_cpa = go.Figure(go.Bar(
             x=['A组', 'B组'],
@@ -594,7 +599,7 @@ with tab3:
         ))
         fig_cpa.update_layout(title='📉 CPA (获客成本)', yaxis_title='元/转化')
         style_fig(fig_cpa, 380)
-        st.plotly_chart(fig_cpa, use_container_width=True)
+        show_chart(fig_cpa)
     with col_r3:
         fig_rev = go.Figure(go.Bar(
             x=['A组', 'B组'],
@@ -605,7 +610,7 @@ with tab3:
         ))
         fig_rev.update_layout(title='💵 总收入对比', yaxis_title='元')
         style_fig(fig_rev, 380)
-        st.plotly_chart(fig_rev, use_container_width=True)
+        show_chart(fig_rev)
 
     # 每日 ROI 趋势
     st.markdown('<div class="sec-h">每日 ROI 趋势</div>', unsafe_allow_html=True)
@@ -626,16 +631,16 @@ with tab3:
                        annotation_text='ROI = 1:4 基准线')
     fig_droi.update_layout(title='每日 ROI 趋势', xaxis_title='日期', yaxis_title='ROI')
     style_fig(fig_droi, 380)
-    st.plotly_chart(fig_droi, use_container_width=True)
+    show_chart(fig_droi)
 
     # 收入瀑布图
     st.markdown('<div class="sec-h">收入贡献瀑布图</div>', unsafe_allow_html=True)
     svc_rev = df[df['converted'] == 1].groupby(['group', 'service_type'])['revenue'].sum().reset_index()
     fig_wf = px.sunburst(svc_rev, path=['group', 'service_type'], values='revenue',
                          color='group', color_discrete_map={'A': C['a'], 'B': C['b']})
-    fig_wf.update_layout(title='收入构成 (按服务类型 × 组别)')
+    fig_wf.update_layout(title='收入构成 (类型×组别)')
     style_fig(fig_wf, 480)
-    st.plotly_chart(fig_wf, use_container_width=True)
+    show_chart(fig_wf)
 
 # ===== TAB 4: 统计检验 =====
 with tab4:
@@ -695,21 +700,21 @@ with tab4:
             hovertemplate=f'{name}<br>转化率: {rate:.2%}<br>95% CI: [{lo:.2%}, {hi:.2%}]<extra></extra>'
         ))
         # Text labels
-        fig_ci.add_annotation(x=hi + 0.002, y=i, text=f'<b>{rate:.2%}</b>  [{lo:.2%}, {hi:.2%}]',
-                              showarrow=False, font=dict(size=12, color=color), xanchor='left')
+        fig_ci.add_annotation(x=rate, y=i + 0.42, text=f'<b>{rate:.2%}</b> [{lo:.2%},{hi:.2%}]',
+                              showarrow=False, font=dict(size=10, color=color), xanchor='center')
 
     fig_ci.update_layout(
-        title='转化率 95% 置信区间 (Forest Plot)',
+        title='转化率 95% CI',
         xaxis_title='转化率', xaxis_tickformat='.1%',
-        yaxis=dict(tickvals=[0, 1], ticktext=['B组 (实验)', 'A组 (对照)'], range=[-0.6, 1.8]),
-        showlegend=False, height=280,
+        yaxis=dict(tickvals=[0, 1], ticktext=['B组', 'A组'], range=[-0.8, 2.0]),
+        showlegend=False, height=260,
         plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
-        margin=dict(l=50, r=150, t=50, b=40),
-        font=dict(family="Inter, system-ui, sans-serif", color='#334155', size=13)
+        margin=dict(l=36, r=30, t=50, b=40),
+        font=dict(family="Inter, system-ui, sans-serif", color='#334155', size=11)
     )
     fig_ci.update_xaxes(gridcolor='#e2e8f0', zeroline=False)
     fig_ci.update_yaxes(gridcolor='rgba(0,0,0,0)', zeroline=False)
-    st.plotly_chart(fig_ci, use_container_width=True)
+    show_chart(fig_ci)
 
     # 差异置信区间
     se_diff = np.sqrt(pa*(1-pa)/n_a + pb*(1-pb)/n_b)
@@ -729,20 +734,20 @@ with tab4:
     fig_diff.add_vline(x=0, line_dash='dash', line_color=C['neg'], line_width=1.5)
     fig_diff.add_annotation(x=0, y=0.45, text='零效应线 (H₀)', showarrow=False,
                             font=dict(color=C['neg'], size=11))
-    fig_diff.add_annotation(x=diff_hi + 0.002, y=0,
-                            text=f'<b>Δ = {diff:.2%}</b>  [{diff_lo:.2%}, {diff_hi:.2%}]',
-                            showarrow=False, font=dict(color=C['accent'], size=12), xanchor='left')
+    fig_diff.add_annotation(x=diff, y=0.5,
+                            text=f'<b>Δ={diff:.2%}</b> [{diff_lo:.2%},{diff_hi:.2%}]',
+                            showarrow=False, font=dict(color=C['accent'], size=10), xanchor='center')
     fig_diff.update_layout(
-        title='转化率差异 (B − A) 95% 置信区间',
+        title='转化率差异 (B−A) 95% CI',
         xaxis_title='转化率差异', xaxis_tickformat='.2%',
         yaxis=dict(visible=False, range=[-0.8, 0.8]),
         showlegend=False, height=200,
         plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)',
-        margin=dict(l=50, r=180, t=50, b=40),
-        font=dict(family="Inter, system-ui, sans-serif", color='#334155', size=13)
+        margin=dict(l=36, r=30, t=50, b=40),
+        font=dict(family="Inter, system-ui, sans-serif", color='#334155', size=11)
     )
     fig_diff.update_xaxes(gridcolor='#e2e8f0', zeroline=False)
-    st.plotly_chart(fig_diff, use_container_width=True)
+    show_chart(fig_diff)
 
     # 统计功效分析
     st.markdown('<div class="sec-h">统计功效 (Power) 分析</div>', unsafe_allow_html=True)
@@ -766,11 +771,11 @@ with tab4:
                      annotation_text='Power = 80%')
     fig_pw.add_vline(x=float(n_a + n_b), line_dash='dot', line_color=C['pos'],
                      annotation_text=f'当前样本 N={n_a+n_b:,}')
-    fig_pw.update_layout(title=f'统计功效曲线 (当前 Power ≈ {achieved_power:.1%})',
+    fig_pw.update_layout(title=f'功效曲线 (Power≈{achieved_power:.1%})',
                          xaxis_title='总样本量 (A+B)', yaxis_title='Power',
                          yaxis_tickformat='.0%')
     style_fig(fig_pw, 380)
-    st.plotly_chart(fig_pw, use_container_width=True)
+    show_chart(fig_pw)
 
     if z_p < 0.05:
         st.markdown(f"""<div class="box-success">
@@ -833,10 +838,10 @@ with tab5:
                        annotation_text=f'A均值={np.mean(a_samp):.2%}')
     fig_post.add_vline(x=float(np.mean(b_samp)), line_dash='dot', line_color=C['b'],
                        annotation_text=f'B均值={np.mean(b_samp):.2%}')
-    fig_post.update_layout(title='Beta 后验分布 — 转化率', xaxis_title='转化率',
+    fig_post.update_layout(title='后验分布 — 转化率', xaxis_title='转化率',
                            yaxis_title='概率密度', xaxis_tickformat='.2%')
     style_fig(fig_post, 400)
-    st.plotly_chart(fig_post, use_container_width=True)
+    show_chart(fig_post)
 
     # 提升幅度分布
     st.markdown('<div class="sec-h">相对提升幅度分布</div>', unsafe_allow_html=True)
@@ -851,11 +856,11 @@ with tab5:
                        annotation_text='零提升线')
     fig_lift.add_vline(x=float(np.mean(lift_samp)), line_dash='dot', line_color=C['pos'],
                        annotation_text=f'期望提升={np.mean(lift_samp):.1%}')
-    fig_lift.update_layout(title='B组相对A组的提升幅度后验分布',
+    fig_lift.update_layout(title='提升幅度分布 (B vs A)',
                            xaxis_title='相对提升', yaxis_title='概率密度',
                            xaxis_tickformat='.0%')
     style_fig(fig_lift, 380)
-    st.plotly_chart(fig_lift, use_container_width=True)
+    show_chart(fig_lift)
 
     prob_loss = (lift_samp < 0).mean()
 
@@ -918,7 +923,7 @@ with tab5:
         yaxis_type='log'
     )
     style_fig(fig_loss, 360)
-    st.plotly_chart(fig_loss, use_container_width=True)
+    show_chart(fig_loss)
 
     threshold = 0.001  # 典型阈值
     below_threshold = loss_b < threshold
@@ -954,7 +959,7 @@ with tab6:
     fig_ch.update_layout(title='各渠道转化率对比', yaxis_tickformat='.1%')
     fig_ch.update_traces(textposition='outside')
     style_fig(fig_ch, 400)
-    st.plotly_chart(fig_ch, use_container_width=True)
+    show_chart(fig_ch)
 
     # 按设备
     st.markdown("#### 💻 按设备分析")
@@ -970,7 +975,7 @@ with tab6:
     fig_dev.update_layout(title='各设备转化率对比', yaxis_tickformat='.1%')
     fig_dev.update_traces(textposition='outside')
     style_fig(fig_dev, 380)
-    st.plotly_chart(fig_dev, use_container_width=True)
+    show_chart(fig_dev)
 
     # 工作日 vs 周末
     st.markdown("#### 📅 工作日 vs 周末")
@@ -988,7 +993,7 @@ with tab6:
     fig_we.update_layout(title='工作日 vs 周末转化率', yaxis_tickformat='.1%')
     fig_we.update_traces(textposition='outside')
     style_fig(fig_we, 380)
-    st.plotly_chart(fig_we, use_container_width=True)
+    show_chart(fig_we)
 
     # 服务类型收入
     st.markdown("#### 🏷️ 转化用户服务类型分布")
@@ -1001,7 +1006,7 @@ with tab6:
                              color_discrete_sequence=px.colors.qualitative.Set3)
             fig_pie.update_traces(textposition='inside', textinfo='percent+label')
             style_fig(fig_pie, 380)
-            st.plotly_chart(fig_pie, use_container_width=True)
+            show_chart(fig_pie)
 
 # ===== TAB 7: 方法论 =====
 with tab7:
